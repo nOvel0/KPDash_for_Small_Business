@@ -1,0 +1,27 @@
+Date,Product,Category,Revenue,Quantity,Profit,CustomerSegment
+2023-01-01,Laptop Pro X,Electronics,1250.75,1,350.25,New
+2023-01-01,Gaming Mouse,Accessories,45.99,2,15.50,Existing
+2023-01-02,Ergonomic Keyboard,Electronics,99.99,1,30.00,New
+2023-01-02,Webcam HD,Peripherals,65.00,1,20.00,Existing
+2023-01-03,USB Hub 4-Port,Accessories,15.00,3,5.00,New
+2023-01-03,External SSD 1TB,Electronics,150.00,1,50.00,Existing
+2023-01-04,Wireless Earbuds,Audio,79.99,2,25.00,New
+2023-01-04,Smartwatch v2,Wearables,199.99,1,60.00,Existing
+2023-01-05,Laptop Pro X,Electronics,1250.75,1,350.25,New
+2023-01-05,Gaming Mouse,Accessories,45.99,1,15.50,New
+2023-01-06,Desk Lamp LED,Home Office,35.00,1,10.00,Existing
+2023-01-06,USB-C Adapter,Accessories,20.00,2,7.00,Existing
+2023-01-07,Mechanical Keyboard,Electronics,120.00,1,40.00,New
+2023-01-07,Monitor Arm,Peripherals,55.00,1,18.00,New
+2023-01-08,Travel Router,Networking,40.00,1,12.00,Existing
+2023-01-08,VR Headset Basic,Gaming,300.00,1,100.00,New
+2023-01-09,Laptop Pro X,Electronics,1250.75,1,350.25,Existing
+2023-01-09,Gaming Mouse,Accessories,45.99,1,15.50,New
+2023-01-10,USB Hub 4-Port,Accessories,15.00,2,5.00,Existing
+2023-01-10,Webcam HD,Peripherals,65.00,1,20.00,New
+2023-01-11,Smart Speaker Mini,Audio,29.99,1,8.00,Existing
+2023-01-11,Tablet Entry,Electronics,200.00,1,70.00,New
+2023-01-12,Ergonomic Chair,Home Office,250.00,1,75.00,New
+2023-01-12,Portable Projector,Electronics,180.00,1,55.00,Existing
+2023-01-13,Phone Stand,Accessories,10.00,5,3.00,New
+2023-01-13,Bluetooth Speaker,Audio,40.00,1,12.00,Existing
