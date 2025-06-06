@@ -282,7 +282,7 @@ export default {
             return { labels: [], datasets: [] };
         }
         return {
-            labels: data.map(item => item.month),
+            labels: data.map(item => item.time),
             datasets: [{
                 label: 'Средний чек',
                 backgroundColor: 'rgba(153, 204, 102, 0.5)', // Более зеленый цвет

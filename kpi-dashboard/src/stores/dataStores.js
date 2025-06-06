@@ -1,48 +1,38 @@
+// src/stores/dataStores.js
+
 import { defineStore } from 'pinia';
 
 export const useDataStore = defineStore('data', {
-  // State: Это данные. Они будут реактивными.
   state: () => ({
-    rawData: [], // Сырые данные, полученные после парсинга CSV/XLSX
-    processedData: { // Обработанные данные для KPI, графиков, таблиц
+    rawData: [],
+    processedData: {
       totalRevenue: '0',
       totalOrders: '0',
       averageCheck: '0',
-      totalProfit: '0',
-      unitsSold: '0',
-      topProducts: [], // Для таблицы "Топ 5 продуктов"
-      // Можно добавить сюда данные для графиков:
-      revenueByMonth: [],
-      salesByCategory: [],
-      averageCheckByTime: [],
-      customerSegmentCounts: []
+      totalProfit: '0', 
+      unitsSold: '0',   
+      topProducts: [],
+      revenueByMonth: [], 
+      salesByCategory: [], 
+      averageCheckByTime: [], 
+      customerSegmentCounts: [] 
     },
   }),
 
-  // Getters: Это вычисляемые свойства. Они будут автоматически обновляться при изменении state.
   getters: {
-    // Пример геттера, который просто возвращает общую выручку (пока что из processedData,
-    // но в будущем он будет вычислять её из rawData)
     getKpiData: (state) => state.processedData,
-
-    getRawTransactions: (state) => state.rawData.slice(0, 10), // Последние 10 транзакций
-    getTop5Products: (state) => state.processedData.topProducts.slice(0, 5), // Топ 5 продуктов
+    getRawTransactions: (state) => state.rawData.slice(0, 10),
+    getTop5Products: (state) => state.processedData.topProducts.slice(0, 5),
   },
 
-  // Actions: Это методы, которые изменяют состояние или выполняют асинхронные операции.
   actions: {
-    // Это действие будет вызываться, когда ты загрузишь файл.
-    // Оно принимает сырые данные (например, из PapaParse) и сохраняет их.
     setRawData(data) {
       this.rawData = data;
-      // Здесь же, после сохранения сырых данных, мы вызываем метод для их обработки.
       this.processData();
     },
 
-    // Это действие будет обрабатывать сырые данные и вычислять все KPI, данные для графиков и таблиц.
     processData() {
       if (this.rawData.length === 0) {
-        // Если данных нет, сбрасываем все обработанные данные к нулю/пустым массивам
         this.processedData = {
           totalRevenue: '0',
           totalOrders: '0',
@@ -55,33 +45,35 @@ export const useDataStore = defineStore('data', {
           averageCheckByTime: [],
           customerSegmentCounts: []
         };
-
         return;
       }
-      
 
       // --- Расчет KPI ---
       let totalRevenue = 0;
-      let totalOrders = 0; // Для простоты, пока считаем каждую строку как отдельный заказ
+      let totalOrders = 0;
       let unitsSold = 0;
-      let totalProfit = 0; // Добавим для расчета прибыли
+      let totalProfit = 0;
 
-      // Используем Map для агрегации данных по продуктам для топ-продуктов
       const productSales = new Map();
+      const monthlyData = new Map(); 
+      const salesByCategoryMap = new Map();
+      const customerSegmentCountsMap = new Map();
 
       this.rawData.forEach(row => {
         const revenue = parseFloat(row.Revenue);
-        const quantity = parseInt(row.Quantity || '1'); // Если нет колонки Quantity, считаем 1
-        const profit = parseFloat(row.Profit || row.Revenue * 0.3); // Пример: если нет колонки Profit, считаем 30% от выручки
+        const currentUnitsSold  = parseInt(row.UnitsSold  || '1'); 
+        const cost = parseFloat(row.Cost); 
+
+        const profit = (!isNaN(revenue) && !isNaN(cost)) ? (revenue - cost) : 0;
 
         if (!isNaN(revenue)) {
           totalRevenue += revenue;
-          totalOrders++; // Простое отслеживание заказов
+          totalOrders++; 
         }
-        if (!isNaN(quantity)) {
-          unitsSold += quantity;
+        if (!isNaN(currentUnitsSold)) { 
+          unitsSold += currentUnitsSold;
         }
-        if (!isNaN(profit)) {
+        if (!isNaN(profit)) { 
           totalProfit += profit;
         }
 
@@ -90,12 +82,39 @@ export const useDataStore = defineStore('data', {
         if (productName) {
           const currentData = productSales.get(productName) || { revenue: 0, units: 0 };
           currentData.revenue += isNaN(revenue) ? 0 : revenue;
-          currentData.units += isNaN(quantity) ? 0 : quantity;
+          currentData.units += isNaN(currentUnitsSold) ? 0 : currentUnitsSold; 
           productSales.set(productName, currentData);
+        }
+
+        //ЛОГИКА ДЛЯ ДИНАМИКИ ВЫРУЧКИ ПО МЕСЯЦАМ И СРЕДНЕГО ЧЕКА (ПЕРВЫЙ ГРАФИК И ТРЕТИЙ ГРАФИК) 
+        const date = new Date(row.Date);
+        if (!isNaN(date.getTime()) && !isNaN(revenue)) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const monthKey = new Date(year, month, 1).toLocaleString('ru-RU', { month: 'short', year: '2-digit' });
+            
+            const currentMonthData = monthlyData.get(monthKey) || {totalRevenue: 0, totalOrders: 0}
+            currentMonthData.totalRevenue += revenue;
+            currentMonthData.totalOrders += 1;
+            monthlyData.set(monthKey, currentMonthData);
+        }
+
+        //ЛОГИКА ДЛЯ ПРОДАЖ ПО КАТЕГОРИЯМ
+        const category = row.Category;
+        if(category && !isNaN(revenue)){
+          salesByCategoryMap.set(category, (salesByCategoryMap.get(category) || 0 ) + revenue);
+        }
+
+        //ЛОГИКА ДЛЯ РАСПРЕДЕЛЕНИЕ КЛИЕНТОВ
+        const customerSegment = row.CustomerSegment;
+        if(customerSegment){
+          customerSegmentCountsMap.set(customerSegment, (customerSegmentCountsMap.get(customerSegment) || 0) + 1);
         }
       });
 
-      // Расчет среднего чека
+
+
+      // Расчет среднего чека (KPI)
       const averageCheck = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : '0';
 
       // Форматирование KPI
@@ -103,52 +122,61 @@ export const useDataStore = defineStore('data', {
       this.processedData.totalOrders = totalOrders.toString();
       this.processedData.averageCheck = averageCheck;
       this.processedData.unitsSold = unitsSold.toString();
-      this.processedData.totalProfit = totalProfit.toFixed(2); // Сохраняем рассчитанную прибыль
+      this.processedData.totalProfit = totalProfit.toFixed(2);
 
       // --- Расчет Топ 5 продуктов ---
       const sortedProducts = Array.from(productSales.entries())
         .map(([name, data]) => ({ name, revenue: data.revenue, units: data.units }))
-        .sort((a, b) => b.revenue - a.revenue); // Сортируем по выручке по убыванию
+        .sort((a, b) => b.revenue - a.revenue);
 
       this.processedData.topProducts = sortedProducts;
       
+      // ФОРМИРОВАНИЕ ДАННЫХ ДЛЯ ГРАФИКА ДИНАМИКА ВЫРУЧКИ
+      const sortedMonths = Array.from(monthlyData .keys()).sort((a, b) => {
+          const parseMonthYear = (s) => {
+              const [monthStr, yearStr] = s.split(' ');
+              const year = parseInt(`20${yearStr}`);
+              const monthNames = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+              const monthIndex = monthNames.indexOf(monthStr.toLowerCase()); 
+              return new Date(year, monthIndex);
+          };
+          return parseMonthYear(a) - parseMonthYear(b);
+      });
 
-      // --- Расчет данных для графиков (заглушки) ---
-      // В будущем здесь будет реальная логика для построения данных графиков
-      this.processedData.revenueByMonth = [
-        { month: 'Янв', value: 10000 },
-        { month: 'Фев', value: 12000 },
-        { month: 'Мар', value: 11000 },
-        { month: 'Апр', value: 13000 },
-        { month: 'Май', value: 15000 }
-      ];
+      this.processedData.revenueByMonth = sortedMonths.map(monthName => ({
+        month: monthName,
+        value: parseFloat(monthlyData.get(monthName).totalRevenue.toFixed(2)) 
+      }));
+
+      // ФОРМИРОВАНИЕ ДАННЫХ ДЛЯ ГРАФИКА СРЕДНИЙ ЧЕК
+      this.processedData.averageCheckByTime = sortedMonths.map(monthName => {
+        const data = monthlyData.get(monthName);
+        const avgCheck = data.totalOrders > 0 ? (data.totalRevenue / data.totalOrders) : 0;
+        return {
+          time: monthName, 
+          value: parseFloat(avgCheck.toFixed(2))
+        };
+      });
+
+      // ФОРМИРОВАНИЕ ДАННЫХ ДЛЯ ПРОДАЖ ПО КАТЕГОРИЯМ
+      this.processedData.salesByCategory = Array.from(salesByCategoryMap.entries()).map(([categoryName, totalCategoryRevenue]) => ({
+            category: categoryName,
+            value: parseFloat(totalCategoryRevenue.toFixed(2))
+        }))
+
+
+      //ФОРМИРОВАНИЕ ДАННЫХ ДЛЯ ГРАФИКА "РАСПРЕДЕЛЕНИЕ КЛИЕНТОВ
       
-      this.processedData.salesByCategory = [
-        { category: 'Электроника', value: 40 },
-        { category: 'Аксессуары', value: 25 },
-        { category: 'Периферия', value: 20 },
-        { category: 'Мобильные устройства', value: 15 }
-      ];
-
-      this.processedData.averageCheckByTime = [
-        { month: 'Янв', value: 90 },
-        { month: 'Фев', value: 95 },
-        { month: 'Мар', value: 92 },
-        { month: 'Апр', value: 100 },
-        { month: 'Май', value: 105 }
-      ];
-
-      this.processedData.customerSegmentCounts = [
-        { segment: 'Новые', count: 300 },
-        { segment: 'Существующие', count: 700 }
-      ];
-
+      this.processedData.customerSegmentCounts = Array.from(customerSegmentCountsMap.entries()).map(([segmentName, count]) => ({
+            segment: segmentName,
+            count: count
+        }))
+      
     },
 
-    // Действие для сброса данных, если пользователь решит очистить дашборд
     resetData() {
       this.rawData = [];
-      this.processData(); // Сбросит processedData до начальных значений
+      this.processData();
     }
   },
 });
