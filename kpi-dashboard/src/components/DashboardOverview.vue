@@ -132,7 +132,7 @@
 </template>
 
 <script>
-import { useDataStore } from '@/stores/dataStores.js'; // <--- ОБЯЗАТЕЛЬНО ИМПОРТИРУЙ PINIA STORE
+import { useDataStore } from '@/stores/dataStores.js'; // < ИМПОРТИРУЙ PINIA STORE
 import { ref } from 'vue'; // ref нужен для реактивных переменных (loading, error)
 import Papa from 'papaparse'; // Нужен для парсинга CSV
 
@@ -140,7 +140,7 @@ export default {
   name: 'DashboardOverview',
   // Используем Composition API (setup) для интеграции с Pinia Store и управления состоянием
   setup() {
-    const dataStore = useDataStore(); // <--- ИНИЦИАЛИЗИРУЕМ PINIA STORE
+    const dataStore = useDataStore(); //ИНИЦИАЛИЗИРУЕМ PINIA STORE
     const loading = ref(false); // Состояние загрузки файла
     const error = ref(null);    // Сообщение об ошибке при загрузке
 

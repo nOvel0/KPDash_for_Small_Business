@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 export const useDataStore = defineStore('data', {
-  // State: Это твои данные. Они будут реактивными.
+  // State: Это данные. Они будут реактивными.
   state: () => ({
     rawData: [], // Сырые данные, полученные после парсинга CSV/XLSX
     processedData: { // Обработанные данные для KPI, графиков, таблиц
@@ -41,6 +41,8 @@ export const useDataStore = defineStore('data', {
 
     // Это действие будет обрабатывать сырые данные и вычислять все KPI, данные для графиков и таблиц.
     processData() {
+
+      console.log('>>> processData: Начало выполнения'); 
       if (this.rawData.length === 0) {
         // Если данных нет, сбрасываем все обработанные данные к нулю/пустым массивам
         this.processedData = {
@@ -55,8 +57,10 @@ export const useDataStore = defineStore('data', {
           averageCheckByTime: [],
           customerSegmentCounts: []
         };
+
         return;
       }
+      
 
       // --- Расчет KPI ---
       let totalRevenue = 0;
@@ -109,9 +113,34 @@ export const useDataStore = defineStore('data', {
         .sort((a, b) => b.revenue - a.revenue); // Сортируем по выручке по убыванию
 
       this.processedData.topProducts = sortedProducts;
+      
 
       // --- Расчет данных для графиков (заглушки) ---
       // В будущем здесь будет реальная логика для построения данных графиков
+      this.processedData.revenueByMonth = [
+        { month: 'Янв', value: 10000 },
+        { month: 'Фев', value: 12000 },
+        { month: 'Мар', value: 11000 },
+        { month: 'Апр', value: 13000 },
+        { month: 'Май', value: 15000 }
+    ];
+    this.processedData.salesByCategory = [
+        { category: 'Электроника', value: 40 },
+        { category: 'Аксессуары', value: 25 },
+        { category: 'Периферия', value: 20 },
+        { category: 'Мобильные устройства', value: 15 }
+    ];
+    this.processedData.averageCheckByTime = [
+        { month: 'Янв', value: 90 },
+        { month: 'Фев', value: 95 },
+        { month: 'Мар', value: 92 },
+        { month: 'Апр', value: 100 },
+        { month: 'Май', value: 105 }
+    ];
+    this.processedData.customerSegmentCounts = [
+        { segment: 'Новые', count: 300 },
+        { segment: 'Существующие', count: 700 }
+    ];
 
     },
 
