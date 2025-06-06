@@ -54,25 +54,25 @@
           <div class="data-card">
             <h3>Динамика выручки</h3>
             <p v-if="revenueChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
-            <LineChart v-else :chart-data="revenueChartData" />
+            <LineChart v-else :chart-data="revenueChartData" :chart-options="revenueChartOptions" />
             </div>
 
           <div class="data-card">
             <h3>Продажи по категориям</h3>
-            <p class="graph-description" v-if="!dataStore.processedData.salesByCategory?.length">Загрузите данные для отображения графика.</p>
-            <img v-else src="@/assets/img/graph.jpg" alt="Продажи по категориям" class="responsive-image">
+            <p class="graph-description" v-if="!categoryChartData.labels || categoryChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
+            <BarChart v-else :chart-data="categoryChartData" :chart-options="categoryChartOptions" />
             </div>
 
           <div class="data-card">
             <h3>Средний чек по времени</h3>
-            <p class="graph-description" v-if="!dataStore.processedData.averageCheckByTime?.length">Загрузите данные для отображения графика.</p>
-            <img v-else src="@/assets/img/graph3.jpg" alt="Средний чек по времени" class="responsive-image">
+            <p class="graph-description" v-if="!avgCheckChartData.labels || avgCheckChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
+            <LineChart v-else :chart-data="avgCheckChartData" :chart-options="avgCheckChartOptions" />
             </div>
 
           <div class="data-card">
             <h3>Распределение клиентов</h3>
-            <p class="graph-description" v-if="!dataStore.processedData.customerSegmentCounts?.length">Загрузите данные для отображения графика.</p>
-            <img v-else src="@/assets/img/graph4.jpg" alt="Распределение клиентов" class="responsive-image">
+            <p class="graph-description" v-if="!customerDistributionChartData.labels || customerDistributionChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
+            <DoughnutChart v-else :chart-data="customerDistributionChartData" :chart-options="customerDistributionChartOptions" />
             </div>
       </div>
 
@@ -137,11 +137,15 @@ import { ref, computed } from 'vue'; // ref нужен для реактивны
 import Papa from 'papaparse'; // Нужен для парсинга CSV
 
 import LineChart from './LineCharts.vue';
+import BarChart from './BarCharts.vue';
+import DoughnutChart from './DoughnutCharts.vue';
 
 export default {
   name: 'DashboardOverview',
   components:{
-    LineChart
+    LineChart, 
+    BarChart,
+    DoughnutChart
   },
   // Используем Composition API (setup) для интеграции с Pinia Store и управления состоянием
   setup() {
@@ -220,6 +224,118 @@ export default {
       };
     });
 
+    const revenueChartOptions = computed(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true
+            }
+        }
+    }));
+
+    const categoryChartData = computed(() => {
+        const data = dataStore.processedData.salesByCategory; // Предполагаем: [{ category: 'A', value: 100 }, ...]
+        if (!data || data.length === 0) {
+            return { labels: [], datasets: [] };
+        }
+        const labels = data.map(item => item.category);
+        const values = data.map(item => item.value);
+
+        // Цвета для столбцов (можно использовать разные для каждой категории или один)
+        const backgroundColors = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9900', '#0099FF', '#CC00CC', '#66CC66', '#FFD700'
+        ];
+
+        return {
+            labels: labels,
+            datasets: [{
+                label: 'Продажи',
+                backgroundColor: backgroundColors.slice(0, labels.length), // Применяем цвета по количеству категорий
+                data: values
+            }]
+        };
+    });
+
+    const categoryChartOptions = computed(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+            },
+            legend: {
+                display: false // Для BarChart обычно легенда не нужна, если одна группа данных
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }));
+
+    const avgCheckChartData = computed(() => {
+        const data = dataStore.processedData.averageCheckByTime; // Предполагаем: [{ time: 'Jan', value: 150 }, ...]
+        if (!data || data.length === 0) {
+            return { labels: [], datasets: [] };
+        }
+        return {
+            labels: data.map(item => item.month),
+            datasets: [{
+                label: 'Средний чек',
+                backgroundColor: 'rgba(153, 204, 102, 0.5)', // Более зеленый цвет
+                borderColor: '#99CC66',
+                data: data.map(item => item.value),
+                fill: true, 
+            }]
+        };
+    });
+
+    const avgCheckChartOptions = computed(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+            }
+        }
+    }));
+
+
+    const customerDistributionChartData = computed(() => {
+        const data = dataStore.processedData.customerSegmentCounts; // Предполагаем: [{ segment: 'New', count: 100 }, ...]
+        if (!data || data.length === 0) {
+            return { labels: [], datasets: [] };
+        }
+        const labels = data.map(item => item.segment);
+        const values = data.map(item => item.count);
+
+        const backgroundColors = [
+            '#FFCD56', '#4BC0C0', '#FF6384', '#36A2EB', '#9966FF',
+            '#FF9900', '#0099FF', '#CC00CC'
+        ];
+
+        return {
+            labels: labels,
+            datasets: [{
+                backgroundColor: backgroundColors.slice(0, labels.length),
+                data: values
+            }]
+        };
+    });
+
+    const customerDistributionChartOptions = computed(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            title: {
+                display: true,
+            }
+        }
+    }));
+
     // Чтобы дашборд был пустым при первом запуске (до загрузки файла),
     // или если ты хочешь сбросить его вручную при монтировании:
     dataStore.resetData(); // Можешь раскомментировать, если хочешь чтобы он был пуст при старте
@@ -230,7 +346,14 @@ export default {
       handleFileUpload, // Метод для загрузки файла
       loading,          // Состояние загрузки
       error,             // Сообщение об ошибке
-      revenueChartData
+      revenueChartData,
+      revenueChartOptions,
+      categoryChartData,
+      categoryChartOptions,
+      avgCheckChartData,
+      avgCheckChartOptions,
+      customerDistributionChartData,
+      customerDistributionChartOptions
     };
   }
 };
