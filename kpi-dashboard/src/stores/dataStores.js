@@ -90,7 +90,8 @@ export const useDataStore = defineStore('data', {
             const year = date.getFullYear();
             const month = date.getMonth();
             const monthKey = new Date(year, month, 1).toLocaleString('ru-RU', { month: 'short', year: '2-digit' });
-            
+            //console.log(`Создан monthKey: ${monthKey} для даты ${row.Date}`);
+
             const currentMonthData = monthlyData.get(monthKey) || {totalRevenue: 0, totalOrders: 0}
             currentMonthData.totalRevenue += revenue;
             currentMonthData.totalOrders += 1;
@@ -130,15 +131,27 @@ export const useDataStore = defineStore('data', {
       this.processedData.topProducts = sortedProducts;
       
       // ФОРМИРОВАНИЕ ДАННЫХ ДЛЯ ГРАФИКА ДИНАМИКА ВЫРУЧКИ
-      const sortedMonths = Array.from(monthlyData .keys()).sort((a, b) => {
-          const parseMonthYear = (s) => {
-              const [monthStr, yearStr] = s.split(' ');
-              const year = parseInt(`20${yearStr}`);
-              const monthNames = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-              const monthIndex = monthNames.indexOf(monthStr.toLowerCase()); 
-              return new Date(year, monthIndex);
-          };
-          return parseMonthYear(a) - parseMonthYear(b);
+      const sortedMonths = Array.from(monthlyData.keys()).sort((a, b) => {
+        const parseMonthYear = (s) => {
+            const [monthStr, yearStr] = s.split(' ');
+            const year = parseInt(`20${yearStr}`); 
+
+            // Используем map для более надежного сопоставления названий месяцев
+            const monthMap = {
+                'янв': 0, 'фев': 1, 'мар': 2, 'апр': 3, 'май': 4, 'июнь': 5, 'июль': 6, 'авг': 7, 'сен': 8, 'окт': 9, 'ноя': 10, 'дек': 11,
+                'мая': 4, 
+                'янв.': 0, 'февр.': 1, 'март': 2, 'апр.': 3, 'июня': 5, 'июля': 6, 'авг.': 7, 'сент.': 8, 'окт.': 9, 'нояб.': 10, 'дек.': 11
+            };
+
+            let monthIndex = monthMap[monthStr.toLowerCase()];
+
+            if (monthIndex === undefined) {
+                console.warn(`Не удалось распознать месяц: "${monthStr}" из строки "${s}".`);
+                return new Date(NaN);
+            }
+            return new Date(year, monthIndex);
+        };
+        return parseMonthYear(a) - parseMonthYear(b);
       });
 
       this.processedData.revenueByMonth = sortedMonths.map(monthName => ({
