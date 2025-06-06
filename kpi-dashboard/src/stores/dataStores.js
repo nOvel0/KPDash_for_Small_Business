@@ -41,8 +41,6 @@ export const useDataStore = defineStore('data', {
 
     // Это действие будет обрабатывать сырые данные и вычислять все KPI, данные для графиков и таблиц.
     processData() {
-
-      console.log('>>> processData: Начало выполнения'); 
       if (this.rawData.length === 0) {
         // Если данных нет, сбрасываем все обработанные данные к нулю/пустым массивам
         this.processedData = {
@@ -123,24 +121,27 @@ export const useDataStore = defineStore('data', {
         { month: 'Мар', value: 11000 },
         { month: 'Апр', value: 13000 },
         { month: 'Май', value: 15000 }
-    ];
-    this.processedData.salesByCategory = [
+      ];
+      
+      this.processedData.salesByCategory = [
         { category: 'Электроника', value: 40 },
         { category: 'Аксессуары', value: 25 },
         { category: 'Периферия', value: 20 },
         { category: 'Мобильные устройства', value: 15 }
-    ];
-    this.processedData.averageCheckByTime = [
+      ];
+
+      this.processedData.averageCheckByTime = [
         { month: 'Янв', value: 90 },
         { month: 'Фев', value: 95 },
         { month: 'Мар', value: 92 },
         { month: 'Апр', value: 100 },
         { month: 'Май', value: 105 }
-    ];
-    this.processedData.customerSegmentCounts = [
+      ];
+
+      this.processedData.customerSegmentCounts = [
         { segment: 'Новые', count: 300 },
         { segment: 'Существующие', count: 700 }
-    ];
+      ];
 
     },
 

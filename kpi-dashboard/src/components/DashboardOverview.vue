@@ -53,8 +53,8 @@
       <div class="graphs-section">
           <div class="data-card">
             <h3>Динамика выручки</h3>
-            <p class="graph-description" v-if="!dataStore.processedData.revenueByMonth?.length">Загрузите данные для отображения графика.</p>
-            <img v-else src="@/assets/img/graph1.jpg" alt="Динамика выручки" class="responsive-image">
+            <p v-if="revenueChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
+            <LineChart v-else :chart-data="revenueChartData" />
             </div>
 
           <div class="data-card">
@@ -133,11 +133,16 @@
 
 <script>
 import { useDataStore } from '@/stores/dataStores.js'; // < ИМПОРТИРУЙ PINIA STORE
-import { ref } from 'vue'; // ref нужен для реактивных переменных (loading, error)
+import { ref, computed } from 'vue'; // ref нужен для реактивных переменных (loading, error)
 import Papa from 'papaparse'; // Нужен для парсинга CSV
+
+import LineChart from './LineCharts.vue';
 
 export default {
   name: 'DashboardOverview',
+  components:{
+    LineChart
+  },
   // Используем Composition API (setup) для интеграции с Pinia Store и управления состоянием
   setup() {
     const dataStore = useDataStore(); //ИНИЦИАЛИЗИРУЕМ PINIA STORE
@@ -194,6 +199,27 @@ export default {
       }
     };
 
+
+    const revenueChartData = computed(() => {
+      const data = dataStore.processedData.revenueByMonth;
+      if (!data || data.length === 0) {
+        return { labels: [], datasets: [] };
+      }
+
+      return {
+        labels: data.map(item => item.month),
+        datasets: [
+          {
+            label: 'Выручка',
+            backgroundColor: 'rgba(248, 121, 121, 0.5)',
+            borderColor: '#f87979',
+            data: data.map(item => item.value),
+            fill: true
+          }
+        ]
+      };
+    });
+
     // Чтобы дашборд был пустым при первом запуске (до загрузки файла),
     // или если ты хочешь сбросить его вручную при монтировании:
     dataStore.resetData(); // Можешь раскомментировать, если хочешь чтобы он был пуст при старте
@@ -203,17 +229,14 @@ export default {
       dataStore,        // Весь Pinia Store
       handleFileUpload, // Метод для загрузки файла
       loading,          // Состояние загрузки
-      error             // Сообщение об ошибке
+      error,             // Сообщение об ошибке
+      revenueChartData
     };
   }
 };
 </script>
 
 <style>
-/* ВНИМАНИЕ: Стили, которые я добавил ранее для `.file-upload-section` и `.dashboard-title-bar`,
-   теперь должны быть здесь, в этом `<style>` блоке. 
-   Если у тебя уже есть эти стили в другом файле CSS, просто убедись, что они применены.
-*/
 
 html, body {
   height: 100%;
