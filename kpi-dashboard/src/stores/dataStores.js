@@ -1,5 +1,3 @@
-// src/stores/dataStores.js
-
 import { defineStore } from 'pinia';
 
 export const useDataStore = defineStore('data', {
@@ -21,7 +19,7 @@ export const useDataStore = defineStore('data', {
 
   getters: {
     getKpiData: (state) => state.processedData,
-    getRawTransactions: (state) => state.rawData.slice(0, 10),
+    getRawTransactions: (state) => state.rawData.slice(-10),
     getTop5Products: (state) => state.processedData.topProducts.slice(0, 5),
   },
 

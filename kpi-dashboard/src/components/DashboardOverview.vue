@@ -6,15 +6,37 @@
         <img src="@/assets/img/Logo_Dash2.jpg" alt="Logo" class="logo-dash">
         <h1>Dashboard</h1>
       </div>
-      <button class="button-question">?</button>
+      <button @click="toggleHelp" class="button-question">?</button>
     </header>
+
+    <div v-if="showHelp" class="help-overlay">
+      <div class="help-popup">
+        <h3>Как пользоваться дашбордом:</h3>
+        <p>
+          Добро пожаловать в дашборд продаж! Здесь вы можете отслеживать ключевые показатели эффективности.
+        </p>
+        <ul>
+          <li>**Последние транзакции:** Просматривайте 10 последних продаж.</li>
+          <li>**KPI:** Общая выручка, количество заказов, средний чек и прибыль.</li>
+          <li>**Топ-продукты:** Узнайте, какие товары приносят наибольший доход.</li>
+          <li>**Динамика выручки:** Отслеживайте изменения выручки по месяцам.</li>
+          <li>**Продажи по категориям:** Анализируйте вклад различных категорий товаров.</li>
+          <li>**Распределение клиентов:** Посмотрите сегментацию вашей клиентской базы.</li>
+        </ul>
+        <p>
+          Для начала работы загрузите файл CSV, нажав на кнопку "Загрузите данные".
+        </p>
+        <button @click="toggleHelp" class="close-popup-button">Закрыть</button>
+      </div>
+    </div>
+    <div class="file-upload-section"></div>
 
     <div class="file-upload-section">
         <h3>Загрузите данные для дашборда:</h3>
         <input type="file" @change="handleFileUpload" accept=".csv"> <p v-if="loading">Загрузка данных...</p>
         <p v-if="error" class="error-message">{{ error }}</p>
         <p v-if="!dataStore.rawData.length && !loading && !error" class="table-description">
-            Загрузите файл CSV (Excel XLSX поддержка пока не реализована) для отображения данных.
+            Загрузите файл CSV (Excel XLSX реализована) для отображения данных.
         </p>
     </div>
 
@@ -53,7 +75,7 @@
       <div class="graphs-section">
           <div class="data-card">
             <h3>Динамика выручки</h3>
-            <p v-if="revenueChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
+            <p class="graph-description" v-if="revenueChartData.labels.length === 0">Загрузите данные для отображения графика.</p>
             <LineChart v-else :chart-data="revenueChartData" :chart-options="revenueChartOptions" />
             </div>
 
@@ -152,6 +174,11 @@ export default {
     const dataStore = useDataStore(); //ИНИЦИАЛИЗИРУЕМ PINIA STORE
     const loading = ref(false); // Состояние загрузки файла
     const error = ref(null);    // Сообщение об ошибке при загрузке
+    const showHelp = ref(false);
+
+    const toggleHelp = () => { 
+      showHelp.value = !showHelp.value;
+    };
 
     // Метод для обработки загрузки файла
     const handleFileUpload = async (event) => {
@@ -346,6 +373,8 @@ export default {
       handleFileUpload, // Метод для загрузки файла
       loading,          // Состояние загрузки
       error,             // Сообщение об ошибке
+      showHelp,
+      toggleHelp,
       revenueChartData,
       revenueChartOptions,
       categoryChartData,
@@ -385,6 +414,98 @@ header {
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+}
+
+.help-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Затемненный фон */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Высокий z-index, чтобы быть поверх всего */
+}
+
+.help-popup {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  padding: 30px;
+  width: 90%;
+  max-width: 650px;
+  max-height: 90vh; /* Ограничить высоту для небольших экранов */
+  overflow-y: auto; /* Добавить скролл, если контента много */
+  color: #333;
+  position: relative; /* Для позиционирования кнопки закрытия */
+}
+
+.help-popup h3 {
+  margin-top: 0;
+  color: #2b3e4f;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.help-popup p, .help-popup ul {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.help-popup ul {
+  padding-left: 25px;
+}
+
+.help-popup li {
+  margin-bottom: 5px;
+}
+
+.help-popup strong {
+  font-weight: bold;
+}
+
+.close-popup-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+  display: block; /* Сделать кнопкой блок, чтобы можно было выровнять */
+  margin-left: auto;
+  margin-right: auto;
+  transition: background-color 0.2s ease;
+}
+
+.close-popup-button:hover {
+  background-color: #0056b3;
+}
+
+/* Переопределяем стили для кнопки со знаком вопроса, чтобы она была более явной */
+.button-question {
+  background-color: #007bff; /* Синий цвет, чтобы выделялась */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px; /* Увеличили размер */
+  height: 40px;
+  font-size: 24px; /* Увеличили шрифт */
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.button-question:hover {
+  background-color: #0056b3;
 }
 
 .logo-div {
