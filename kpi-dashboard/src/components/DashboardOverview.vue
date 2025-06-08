@@ -36,7 +36,7 @@
         <input type="file" @change="handleFileUpload" accept=".csv"> <p v-if="loading">Загрузка данных...</p>
         <p v-if="error" class="error-message">{{ error }}</p>
         <p v-if="!dataStore.rawData.length && !loading && !error" class="table-description">
-            Загрузите файл CSV (Excel XLSX реализована) для отображения данных.
+            Загрузите файл CSV (Excel XLSX не реализована) для отображения данных.
         </p>
     </div>
 
